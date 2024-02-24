@@ -1,0 +1,32 @@
+{
+	"name": "event-bus",
+	"version": "1.0.0",
+	"type": "module",
+	"main": "./dist/main.js",
+	"types": "./dist/main.d.ts",
+	"description": "一个事件总线库",
+	"keywords": [
+		"event-bus-js",
+		"event-bus",
+		"event",
+		"bus"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rgbjs/event-bus-js"
+	},
+	"homepage": "https://github.com/rgbjs/event-bus-js",
+	"author": "feiYu",
+	"license": "MIT",
+	"scripts": {
+		"dev": "vite",
+		"test": "vite --config ./vite.test.config.ts",
+		"build": "tsc -d && vite build && npm run build:types",
+		"build:types": "tsc -d",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"typescript": "^5.3.3",
+		"vite": "^5.1.0"
+	}
+}

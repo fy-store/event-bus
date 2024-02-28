@@ -9,7 +9,7 @@
 **使用 pnpm**
 
 ```cmd
-pnpm i event-bus-js
+pnpm i @yishu/event-bus
 ```
 
 
@@ -17,7 +17,7 @@ pnpm i event-bus-js
 **使用 yarn**
 
 ```cmd
-yarn add event-bus-js
+yarn add @yishu/event-bus
 ```
 
 
@@ -25,7 +25,7 @@ yarn add event-bus-js
 **使用 npm**
 
 ```cmd
-npm i event-bus-js
+npm i @yishu/event-bus
 ```
 
 
@@ -36,10 +36,10 @@ npm i event-bus-js
 
 ```js
 // 在构建工具中
-import EventBus from 'event-bus-js'
+import EventBus from '@yishu/event-bus'
 // 如果你的构建工具版本较低, 无法处理 class 的私有属性
 // 你可以使用以下方式导入降级后的包
-// import EventBus from 'event-bus-js/dist/main.es.js'
+// import EventBus from '@yishu/event-bus/dist/main.es.js'
 
 const eventBus = new EventBus()
 /** 注册事件 */

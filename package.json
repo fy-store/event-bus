@@ -1,22 +1,24 @@
 {
-	"name": "event-bus",
+	"name": "@yishu/event-bus",
 	"version": "1.0.0",
 	"type": "module",
 	"main": "./dist/main.js",
 	"types": "./dist/main.d.ts",
 	"description": "一个事件总线库",
 	"keywords": [
-		"event-bus-js",
+		"yishu",
+		"@yishu",
+		"@yishu/event-bus",
 		"event-bus",
 		"event",
 		"bus"
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/rgbjs/event-bus-js"
+		"url": "https://github.com/rgbjs/event-bus"
 	},
-	"homepage": "https://github.com/rgbjs/event-bus-js",
-	"author": "feiYu",
+	"homepage": "https://github.com/rgbjs/event-bus",
+	"author": "feiYu <feiyucode@gmail.com>",
 	"license": "MIT",
 	"scripts": {
 		"dev": "vite",

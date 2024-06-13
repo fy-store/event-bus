@@ -1,4 +1,4 @@
-import EventBus from '../dist/main'
+import EventBus from '../../src/main'
 
 const eventBus = new EventBus({
 	state: {

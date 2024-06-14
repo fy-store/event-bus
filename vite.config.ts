@@ -7,7 +7,7 @@ import dts from 'vite-plugin-dts'
 export default defineConfig({
 	build: {
 		lib: {
-			entry: process.env.VITE_APP_PATH || './src/main.ts',
+			entry: process.env.VITE_APP_PATH as string,
 			name: 'EventBus',
 			formats: ['es'],
 			fileName: 'main'

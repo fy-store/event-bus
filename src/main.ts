@@ -1,114 +1,8 @@
-import { isType } from 'assist-tools'
-
-/**
- * 状态
- */
-export interface State {
-	[key: string | symbol]: any
-}
-
-export interface Callback<T> {
-	(state: T, ...args: any): any
-}
-
-export interface EventItem<T> {
-	/**
-	 * 是否仅触发一次
-	 */
-	once?: true | false
-	/**
-	 * 唯一标识
-	 */
-	sign: symbol
-	/**
-	 * 回调函数
-	 */
-	callback: Callback<T>
-}
-
-export interface Events<T> {
-	[key: string | symbol]: EventItem<T> | EventItem<T>[] | Callback<T>
-}
-
-/**
- * 上下文对象
- */
-export interface Ctx<T> {
-	/**
-	 * 类的实例
-	 */
-	eventBus: EventBus<T>
-	/**
-	 * 注册自定义事件
-	 * - eventName 事件名
-	 * - callback 事件回调
-	 */
-	on: (eventName: string | symbol, callback: Callback<T>) => boolean
-	/**
-	 * 注册自定义事件, 触发一次后即移除该事件
-	 * - eventName 事件名
-	 * - callback 事件回调
-	 */
-	once: (eventName: string | symbol, callback: Callback<T>) => boolean
-	/**
-	 * 判断该事件中该回调方法是否存在
-	 * - eventName 事件名
-	 * - callback 事件回调
-	 */
-	has: (eventName: string | symbol, callback: Callback<T>) => boolean
-	/**
-	 * 判断该事件是否存在
-	 * - eventName 事件名
-	 */
-	hasEvent: (eventName: string | symbol) => boolean
-	/**
-	 * 触发自定义事件
-	 * - eventName 事件名
-	 * - args 传递的参数
-	 */
-	emit: (eventName: string | symbol, ...args: any) => boolean
-	/**
-	 * 取消一个事件回调
-	 * - eventName 注册事件时的事件名
-	 * - callback 注册事件时的回调函数
-	 */
-	off: (eventName: string | symbol, callback: Callback<T>) => boolean
-	/**
-	 * 删除一个事件(且移除该事件所有回调函数)
-	 * - eventName 注册事件时的事件名
-	 */
-	removeEvent: (eventName: string | symbol) => boolean
-	/**
-	 * 状态数据
-	 */
-	state: T
-	/**
-	 * 事件表
-	 */
-	events: Map<string | symbol, EventItem<T>[]>
-}
-
-/**
- * 配置对象
- */
-export interface Options<T> {
-	/**
-	 * 初始状态数据
-	 */
-	state?: T
-	/**
-	 * 初始事件
-	 */
-	events?: Events<T>
-	/**
-	 * 用于获取上下文对象的函数
-	 * - 接收一个上下文对象
-	 */
-	ctx?: (ctx: Ctx<T>) => void
-}
+import { readOnly, isType } from 'assist-tools'
+import { type TOptions, type TEvent, type TCallback, GetMapKeys } from './types/index.js'
 
 const mapHandler = {
-	object: <T>(item: EventItem<T>) => {
+	object: <S>(item: TEvent<S>, eventName: string | symbol) => {
 		if (!item.callback) {
 			throw new Error('"EventItem.callback" does not exist')
 		}
@@ -116,26 +10,28 @@ const mapHandler = {
 		return [
 			{
 				once: !!item.once,
+				sign: Symbol(String(eventName)),
 				callback: item.callback
 			}
 		]
 	},
 
-	function: <T>(item: Callback<T>) => {
+	function: <S>(item: TEvent<S>[], eventName: string | symbol) => {
 		return [
 			{
 				once: false,
+				sign: Symbol(String(eventName)),
 				callback: item
 			}
 		]
 	},
 
-	array: <T>(item: EventItem<T>[]) => {
+	array: <S>(item: TEvent<S>[], eventName: string | symbol) => {
 		return item.map((el) => {
 			if (typeof el === 'function') {
 				el = {
 					once: false,
-					sign: Symbol(),
+					sign: Symbol(eventName.toString()),
 					callback: el
 				}
 			}
@@ -150,6 +46,7 @@ const mapHandler = {
 
 			return {
 				once: !!el.once,
+				sign: Symbol(eventName.toString()),
 				callback: el.callback
 			}
 		})
@@ -157,23 +54,19 @@ const mapHandler = {
 }
 
 /**
- * 事件总线
+ * 发布订阅
+ * - 详细使用方式请查阅文档
  */
-export default class EventBus<T> {
-	/**
-	 * 事件表
-	 */
-	#eventMap = new Map<string | symbol, EventItem<T>>()
+export default class EventBus<S> {
+	#state: S
+	#events = new Map<string | symbol, TEvent<S>[]>()
 
 	/**
-	 * 状态数据
+	 * 发布订阅
+	 * - 详细使用方式请查阅文档
+	 * @param options 配置对象
 	 */
-	#state: T
-
-	/**
-	 * 配置对象
-	 */
-	constructor(options: Options<T> = {}) {
+	constructor(options: TOptions<S> = {}) {
 		if (isType(options) !== 'object') {
 			throw new TypeError('"options" must be a object')
 		}
@@ -187,18 +80,18 @@ export default class EventBus<T> {
 			throw new TypeError('"events" must be a object')
 		}
 
-		this.#state = state as T
+		this.#state = state as S
 
 		const handler = (key: string | symbol) => {
 			let item = events[key]
-
 			const type = isType(item)
 			if (!mapHandler[type as keyof typeof mapHandler]) {
 				throw new TypeError('"events" item must be `EventItem`  or `EventItem[]` or `function`')
 			}
 
 			// @ts-ignore
-			this.#eventMap.set(key, mapHandler[type as unknown as keyof typeof mapHandler].call(this, item))
+			const f = mapHandler[type as unknown as keyof typeof mapHandler].call(this, item, key)
+			this.#events.set(key, f)
 		}
 
 		Object.keys(events).forEach(handler)
@@ -215,20 +108,27 @@ export default class EventBus<T> {
 				off: this.off.bind(this),
 				removeEvent: this.#removeEvent.bind(this),
 				state: this.#state,
-				events: this.#eventMap
+				events: this.#events
 			}
 			ctx.call(this, ctxParams)
 		}
 	}
 
 	/**
-	 * 状态对象
+	 * 状态
 	 */
 	get state() {
 		return this.#state
 	}
 
-	#on(eventName: string | symbol, once: boolean, callback: Callback<T>): boolean {
+	/**
+	 * 解析后的事件对象, 此处仅用于提供类型推导(不允许操作)
+	 */
+	get __events__() {
+		return readOnly(this.#events, 'strict')
+	}
+
+	#on(eventName: string | symbol, once: boolean, callback: TCallback<S>, desc: string = ''): symbol {
 		if (!(typeof eventName === 'string' || typeof eventName === 'symbol')) {
 			throw new TypeError('TypeError: "eventName" must be a string or symbol')
 		}
@@ -237,42 +137,47 @@ export default class EventBus<T> {
 			throw new TypeError('TypeError: "callback" must be a function')
 		}
 
-		if (!this.#eventMap.has(eventName)) {
-			this.#eventMap.set(eventName, [])
+		if (typeof desc !== 'string') {
+			throw new TypeError('TypeError: "desc" must be a string')
 		}
 
-		this.#eventMap.get(eventName).push({
+		if (!this.#events.has(eventName)) {
+			this.#events.set(eventName, [])
+		}
+
+		const sign = Symbol(desc || eventName.toString())
+		;(this.#events.get(eventName) as TEvent<S>[]).push({
 			once,
-			sign: Symbol(String(eventName)),
+			sign,
 			callback
 		})
-		return true
+		return sign
 	}
 
 	/**
 	 * 注册自定义事件
-	 * - eventName 事件名
-	 * - callback 事件回调
+	 * @param eventName 事件名
+	 * @param callback 事件回调
 	 */
-	on(eventName: string | symbol, callback: Callback<T>): boolean {
-		return this.#on(eventName, false, callback)
+	on(eventName: string | symbol, callback: TCallback<S>, desc?: string): symbol {
+		return this.#on(eventName, false, callback, desc)
 	}
 
 	/**
-	 * 注册自定义事件, 触发一次后即移除该事件
-	 * - eventName 事件名
-	 * - callback 事件回调
+	 * 注册自定义事件, 触发一次后即自动移除该事件
+	 * @param eventName 事件名
+	 * @param callback 事件回调
 	 */
-	once(eventName: string | symbol, callback: Callback<T>): boolean {
-		return this.#on(eventName, true, callback)
+	once(eventName: string | symbol, callback: TCallback<S>, desc?: string): symbol {
+		return this.#on(eventName, true, callback, desc)
 	}
 
 	/**
 	 * 判断该事件中该回调方法是否存在
-	 * - eventName 事件名
-	 * - callback 事件回调
+	 * @param eventName 事件名
+	 * @param callback 事件回调
 	 */
-	has(eventName: string | symbol, callback: Callback<T>): boolean {
+	has(eventName: string | symbol, callback: TCallback<S>): boolean {
 		if (!(typeof eventName === 'string' || typeof eventName === 'symbol')) {
 			throw new TypeError('TypeError: "eventName" must be a string or symbol')
 		}
@@ -281,76 +186,112 @@ export default class EventBus<T> {
 			throw new TypeError('TypeError: "callback" must be a function')
 		}
 
-		if (!this.#eventMap.has(eventName)) return false
-		const eventList: EventItem<T>[] = this.#eventMap.get(eventName)
-		if (eventList.length === 0) return false
-		return !!eventList.find((item) => item.callback)
+		if (!this.#events.has(eventName)) return false
+		const eventArr = this.#events.get(eventName) as TEvent<S>[]
+		if (eventArr.length === 0) return false
+		return !!eventArr.find((item) => item.callback)
 	}
 
 	/**
 	 * 判断该事件是否存在
-	 * - eventName 事件名
+	 * @param eventName 事件名
 	 */
 	hasEvent(eventName: string | symbol): boolean {
 		if (!(typeof eventName === 'string' || typeof eventName === 'symbol')) {
 			throw new TypeError('TypeError: "eventName" must be a string or symbol')
 		}
 
-		if (!this.#eventMap.has(eventName)) return false
-		return (this.#eventMap.get(eventName) as EventItem<T>[]).length === 0 ? false : true
+		if (!this.#events.has(eventName)) return false
+		return (this.#events.get(eventName) as TEvent<S>[]).length === 0 ? false : true
 	}
 
 	/**
 	 * 触发自定义事件
-	 * - eventName 事件名
-	 * - args 传递的参数
+	 * @param eventName 事件名
+	 * @param args 传递的参数
 	 */
-	emit(eventName: string | symbol, ...args: any): boolean {
-		if (!this.#eventMap.has(eventName)) {
+	emit(eventName: GetMapKeys<(typeof this)['__events__']>, ...args: any[]) {
+		if (!this.#events.has(eventName)) {
 			console.error(`Warning: emit => "${String(eventName)}" does not exist`)
 			return false
 		}
 
-		const eventList: EventItem<T>[] = this.#eventMap.get(eventName)
-		for (let i = 0; i < eventList.length; i++) {
-			const item: EventItem<T> = eventList[i]
+		const eventArr = this.#events.get(eventName) as TEvent<S>[]
+		for (let i = 0; i < eventArr.length; i++) {
+			const item = eventArr[i]
 			item.callback.call(this, this.#state, ...args)
 			if (item.once) {
-				eventList.splice(i, i + 1)
+				eventArr.splice(i, i + 1)
 				i--
 			}
 		}
-		if (eventList.length === 0) {
-			this.#eventMap.delete(eventName)
+		if (eventArr.length === 0) {
+			this.#events.delete(eventName)
 		}
 		return true
 	}
 
 	/**
 	 * 取消一个事件回调
-	 * - eventName 注册事件时的事件名
-	 * - callback 注册事件时的回调函数
+	 * @param eventName 注册事件时的事件名
+	 * @param callback 注册事件时的回调函数
 	 */
-	off(eventName: string | symbol, callback: Callback<T>): boolean {
-		if (!this.#eventMap.has(eventName)) {
-			console.error(`Warning: off => "${String(eventName)}" does not exist`)
-			return false
+	off(...args: [GetMapKeys<(typeof this)['__events__']>, TCallback<S>] | [symbol]) {
+		if (!args.length) {
+			throw new Error(`No parameters passed !`)
 		}
 
-		if (typeof callback !== 'function') {
-			throw new TypeError('TypeError: "callback" must be a function')
-		}
+		const [eventName, callback] = args
 
-		const list: EventItem<T>[] = this.#eventMap.get(eventName)
-		const i = list.findIndex((item) => item.callback === callback)
-		if (i === -1) {
-			console.error(`Warning: off => this "callback" does not exist`)
-			return false
-		}
+		// 通过 sign 查找并移除
+		if (args.length === 1) {
+			const entriesEvent = this.#events.entries()
+			let result = false
+			for (const [name, eventArr] of entriesEvent) {
+				const i = eventArr.findIndex((item) => item.sign === eventName)
+				if (i !== -1) {
+					result = true
+					eventArr.splice(i, 1)
+					if (eventArr.length === 0) {
+						this.#events.delete(name)
+					}
+					break
+				}
+			}
+			if (!result) {
+				console.error(`Warning: off => "${String(eventName)}" does not exist`)
+				return false
+			}
+		} else {
+			// 通过相同引用函数删除
+			if (!this.#events.has(eventName)) {
+				console.error(`Warning: off => "${String(eventName)}" does not exist`)
+				return false
+			}
 
-		list.splice(i, 1)
-		if (list.length === 0) {
-			this.#eventMap.delete(eventName)
+			const eventArr = this.#events.get(eventName) as TEvent<S>[]
+			const i = eventArr.findIndex((item) => item.callback === callback)
+			if (i === -1) {
+				console.error(`Warning: off => this "callback" does not exist`)
+				return false
+			}
+
+			eventArr.splice(i, 1)
+
+			// 处理多个相同函数
+			let isNext = true
+			while (isNext) {
+				const i = eventArr.findIndex((item) => item.callback === callback)
+				if (i === -1) {
+					isNext = false
+					break
+				}
+				eventArr.splice(i, 1)
+			}
+
+			if (eventArr.length === 0) {
+				this.#events.delete(eventName)
+			}
 		}
 
 		return true
@@ -358,29 +299,13 @@ export default class EventBus<T> {
 
 	/**
 	 * 删除一个事件(且移除该事件所有回调函数)
-	 * - eventName 注册事件时的事件名
+	 * @param eventName 注册事件时的事件名
 	 */
 	#removeEvent(eventName: string | symbol): boolean {
-		if (!this.#eventMap.has(eventName)) {
+		if (!this.#events.has(eventName)) {
 			console.error(`Warning: removeEvent => "${String(eventName)}" does not exist`)
 			return false
 		}
-		return this.#eventMap.delete(eventName)
+		return this.#events.delete(eventName)
 	}
 }
-
-const eventBus = new EventBus({
-	state: {
-		a: 1,
-		b: [{ c: 2 }],
-		c: { d: 3 }
-	},
-	events: {
-		a(state) {
-			state.c.d
-		}
-	}
-})
-
-eventBus.state.c.d
-console.log(eventBus)

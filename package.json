@@ -21,7 +21,7 @@
 	"author": "feiYu <feiyucode@gmail.com>",
 	"license": "MIT",
 	"scripts": {
-		"dev": "cross-env VITE_APP_PATH=/src/index.ts vite",
+		"dev": "cross-env VITE_APP_PATH=/src/main.ts vite",
 		"test:dev": "cross-env VITE_APP_PATH=/test/dev/index.ts vite",
 		"test:pro": "cross-env VITE_APP_PATH=/test/pro/index.js vite",
 		"build": "vite build",

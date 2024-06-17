@@ -1,18 +1,25 @@
-import EventBus from '../../src/index'
+import EventBus from '../../src/main'
 
 const eventBus = new EventBus({
-    state: {
-        b: 456
-    }
-})
-console.log(eventBus)
+	state: {
+		a: 123,
+		b: 456
+	},
 
-eventBus.on('a', (state) => {
-	state.b = '123'
-	console.log(state)
-})
-eventBus.on('a', (state) => {
-	console.log(state.b)
+	events: {
+		sayHello(state) {
+			console.log('hello, ', state.a, state.b)
+		}
+	}
 })
 
-eventBus.emit('a')
+console.log(eventBus.emit('sayHello'))
+
+const bb = eventBus.on('bb', (state) => {
+	console.log('bb', state.b)
+})
+
+console.log(bb)
+
+console.log('abc'.toString())
+console.log(Symbol('bb').toString())

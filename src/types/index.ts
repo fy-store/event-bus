@@ -1,4 +1,4 @@
-import EventBus from '../index'
+import EventBus from '../main.js'
 
 export interface TEventsItem<S> {
 	once?: boolean
@@ -6,7 +6,7 @@ export interface TEventsItem<S> {
 }
 
 export type TEvents<S> = {
-	[k: string | symbol]: TEventsItem<S>
+	[k: string | symbol]: TEventsItem<S> | TEvents<S>[] | TCallback<S> | TCallback<S>[]
 }
 
 export interface TCtx<S> {
@@ -19,7 +19,7 @@ export interface TCtx<S> {
 	off: EventBus<S>['off']
 	removeEvent: (eventName: string | symbol) => boolean
 	state: EventBus<S>['state']
-	events: EventBus<S>['events']
+	events: EventBus<S>['__events__']
 }
 
 export interface TOptions<S> {

@@ -51,6 +51,18 @@ eventBus.on('e', (state, ...args) => {
 
 /** 触发事件并传递参数 */
 eventBus.emit('e', 1, 'a', { name: 'test' })
+
+/** 移除事件1 */
+const f1 = () => {}
+eventBus.on('f1', f1) // 注册
+eventBus.off('f1', f1) // 移除
+
+/**
+ * 移除事件2
+ * - 你希望使用更优雅的方式移除, 亦或者你不方便保存事件函数
+ */
+const f2 = eventBus.on('f2', () => {}) // 注册并接收返回值
+eventBus.off(f2) // 通过返回值移除
 ```
 
 如果你想使用 CommonJS 模块化规范, 那么你可以使用以下方式导入

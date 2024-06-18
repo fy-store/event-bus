@@ -270,7 +270,9 @@ export default class EventBus<S> {
 
 	/**
 	 * 取消一个事件回调
-	 * @param eventName 注册事件时的事件名
+	 * - 当传递一个参数时 eventName 作为唯一标识
+	 * - 当传递两个参数时 eventName 作为事件名
+	 * @param eventName 注册事件时的事件名或唯一标识
 	 * @param callback 注册事件时的回调函数
 	 */
 	off(...args: [GetMapKeys<(typeof this)['__events__']>, TCallback<S>] | [symbol]) {

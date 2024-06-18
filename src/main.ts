@@ -10,7 +10,7 @@ const mapHandler = {
 		return [
 			{
 				once: !!item.once,
-				sign: Symbol(String(eventName)),
+				sign: Symbol(eventName.toString()),
 				callback: item.callback
 			}
 		]
@@ -20,7 +20,7 @@ const mapHandler = {
 		return [
 			{
 				once: false,
-				sign: Symbol(String(eventName)),
+				sign: Symbol(eventName.toString()),
 				callback: item
 			}
 		]
@@ -103,6 +103,7 @@ export default class EventBus<S> {
 				on: this.on.bind(this),
 				once: this.once.bind(this),
 				has: this.has.bind(this),
+				hasSign: this.hasSign.bind(this),
 				hasEvent: this.hasEvent.bind(this),
 				emit: this.emit.bind(this),
 				off: this.off.bind(this),
@@ -158,6 +159,8 @@ export default class EventBus<S> {
 	 * 注册自定义事件
 	 * @param eventName 事件名
 	 * @param callback 事件回调
+	 * @param desc 返回 symbol 的描述
+	 * @returns 唯一标识
 	 */
 	on(eventName: string | symbol, callback: TCallback<S>, desc?: string): symbol {
 		return this.#on(eventName, false, callback, desc)
@@ -167,9 +170,27 @@ export default class EventBus<S> {
 	 * 注册自定义事件, 触发一次后即自动移除该事件
 	 * @param eventName 事件名
 	 * @param callback 事件回调
+	 * @param desc 返回 symbol 的描述
+	 * @returns 唯一标识
 	 */
 	once(eventName: string | symbol, callback: TCallback<S>, desc?: string): symbol {
 		return this.#on(eventName, true, callback, desc)
+	}
+
+	/**
+	 * 判断唯一标识是否存在
+	 * @param sign 唯一标识
+	 */
+	hasSign(sign: symbol) {
+		const entriesEvent = this.#events.entries()
+		for (const [, eventArr] of entriesEvent) {
+			const i = eventArr.findIndex((item) => item.sign === sign)
+			if (i !== -1) {
+				return true
+			}
+		}
+		console.error(`Warning: off => "${String(sign)}" does not exist`)
+		return false
 	}
 
 	/**
@@ -207,11 +228,27 @@ export default class EventBus<S> {
 
 	/**
 	 * 触发自定义事件
-	 * @param eventName 事件名
+	 * @param eventName 事件名或唯一标识
 	 * @param args 传递的参数
 	 */
 	emit(eventName: GetMapKeys<(typeof this)['__events__']>, ...args: any[]) {
 		if (!this.#events.has(eventName)) {
+			// 事件名不存在, 使用 sign 查找
+			const entriesEvent = this.#events.entries()
+			for (const [name, eventArr] of entriesEvent) {
+				const i = eventArr.findIndex((item) => item.sign === eventName)
+				if (i !== -1) {
+					eventArr[i].callback.call(this, this.#state, ...args)
+					if (eventArr[i].once) {
+						eventArr.splice(i, 1)
+						if (eventArr.length === 0) {
+							this.#events.delete(name)
+						}
+					}
+					return true
+				}
+			}
+
 			console.error(`Warning: emit => "${String(eventName)}" does not exist`)
 			return false
 		}

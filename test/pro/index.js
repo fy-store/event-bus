@@ -1,4 +1,4 @@
-import EventBus from '../../src/main'
+import EventBus from '../../dist/main.es.js'
 
 const eventBus = new EventBus({
 	state: {
@@ -7,19 +7,17 @@ const eventBus = new EventBus({
 	},
 
 	events: {
-		sayHello(state) {
-			console.log('hello, ', state.a, state.b)
+		sayHello: {
+			callback(state) {
+				console.log('hello, ', state.a, state.b)
+			},
+			once: true
 		}
 	}
 })
 
-console.log(eventBus.emit('sayHello'))
-
-const bb = eventBus.on('bb', (state) => {
-	console.log('bb', state.b)
+eventBus.on('bb', function (state) {
+	console.log(this.state === state)
 })
 
-console.log(bb)
-
-console.log('abc'.toString())
-console.log(Symbol('bb').toString())
+eventBus.emit('bb')

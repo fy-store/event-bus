@@ -1,8 +1,12 @@
 # 说明
 
-一个事件总线库
+一个发布订阅模块
 
+事实上各大框架生态中已经提供了多种通信方式
 
+本模块只适用于通信方式不友好的程序, 比如: 原生微信小程序
+
+对于无法支持 npm 包的可以下载该包后手动复制到工程中, 记得复制类型声明文件, 这能够给你带来友好的类型提示
 
 ## 安装
 
@@ -12,15 +16,11 @@
 pnpm i @yishu/event-bus
 ```
 
-
-
 **使用 yarn**
 
 ```cmd
 yarn add @yishu/event-bus
 ```
-
-
 
 **使用 npm**
 
@@ -28,31 +28,37 @@ yarn add @yishu/event-bus
 npm i @yishu/event-bus
 ```
 
-
-
-
-
 ## 使用
 
 ```js
-// 在构建工具中
 import EventBus from '@yishu/event-bus'
-// 如果你的构建工具版本较低, 无法处理 class 的私有属性
-// 你可以使用以下方式导入降级后的包
-// import EventBus from '@yishu/event-bus/dist/main.es.js'
 
-const eventBus = new EventBus()
+const eventBus = new EventBus({
+	// 推荐需要使用的数据提前在 state 中定义好, 这样在后续的使用中能够获得友好的类型提示
+	state: {
+		a: 1,
+		b: 2,
+		c: {
+			d: 3
+		}
+	}
+})
+
 /** 注册事件 */
 eventBus.on('e', (state, ...args) => {
 	console.log('e', state, ...args)
 })
+
 /** 触发事件并传递参数 */
-eventBus.emit('e', 1, 'a', {name: 'test'})
+eventBus.emit('e', 1, 'a', { name: 'test' })
 ```
 
+如果你想使用 CommonJS 模块化规范, 那么你可以使用以下方式导入
 
-
-
+```js
+const { isType } = require('@yishu/event-bus/dist/main.cjs.js')
+console.log(isType(10)) // 'number'
+```
 
 ## EventBus
 
@@ -62,10 +68,10 @@ eventBus.emit('e', 1, 'a', {name: 'test'})
 const eventBus = new EventBus([options])
 ```
 
-- options 配置对象 [可选]
-  - state 状态数据, 接收一个对象 [可选]
-  - events 事件, 接收一个对象 [可选]
-  - ctx 获取上下文对象回调函数, 接收一个函数 [可选]
+-   options 配置对象 [可选]
+    -   state 状态数据, 接收一个对象 [可选]
+    -   events 事件, 接收一个对象 [可选]
+    -   ctx 获取上下文对象回调函数, 接收一个函数 [可选]
 
 事件中的函数 this 默认绑定为实例对象, 如果你希望使用 this 来获取实例, 请使用普通函数, 而非箭头函数
 
@@ -119,33 +125,28 @@ const eventBus = new EventBus({
 			}
 		]
 	},
-	
-    /** 获取实例上下文 */
+
+	/** 获取实例上下文 */
 	ctx(ctx) {
-        // eventBus 实例对象
-        // state 实例的状态数据
+		// eventBus 实例对象
+		// state 实例的状态数据
 		// events 实例的事件数据 [仅在当前上下文对象中可以获取]
 		// on 实例的 on 方法
 		// once 实例的 once 方法
 		// has 实例的 has 方法
+		// hasSign 实例的 hasSign 方法
 		// hasEvent 实例的 hasEvent 方法
 		// emit 实例的 emit 方法
 		// off 实例的 off 方法
 		// removeEvent 移除某个事件方法 [仅在当前上下文对象中可以获取]
 
-        // 上下文对象中的函数 this 已被绑定, 支持解构
+		// 上下文对象中的函数 this 已被绑定, 支持解构
 		console.log('ctx', ctx)
 	}
 })
 ```
 
-
-
-
-
 ## 实例属性
-
-
 
 ### state
 
@@ -155,19 +156,11 @@ const eventBus = new EventBus({
 eventBus.state
 ```
 
-
-
-
-
 ## 原型方法
-
-
 
 ### on
 
 注册一个事件
-
-
 
 **语法**
 
@@ -175,24 +168,16 @@ eventBus.state
 eventBus.on(eventName, callback)
 ```
 
-- eventName 事件名称, 支持字符串和symbol
-- callback 事件回调函数
-
-
+-   eventName 事件名称, 支持字符串和 symbol
+-   callback 事件回调函数
 
 **返回值**
 
-boolean
-
-
-
-
+symbol 唯一标识, 后续可用该标识触发/移除函数
 
 ### once
 
 注册一个一次性事件, 当事件触发一次后将被移除
-
-
 
 **语法**
 
@@ -200,100 +185,84 @@ boolean
 eventBus.once(eventName, callback)
 ```
 
-- eventName 事件名称, 支持字符串和symbol
+-   eventName 事件名称, 支持字符串和 symbol
 
-- callback 事件回调函数
-
-  
+-   callback 事件回调函数
 
 **返回值**
 
-boolean
-
-
-
-
+symbol 唯一标识, 后续可用该标识触发/移除函数
 
 ### emit
 
 触发指定事件
 
-
-
 **语法**
 
 ```
-eventBus.once(eventName [,arg1, arg2, arg3, ...argN])
+eventBus.emit(eventName [,arg1, arg2, arg3, ...argN])
 ```
 
-- eventName 需要触发的事件的名称
-- arg 需要传递的事件参数
-
-
+-   eventName 需要触发的事件的名称或唯一标识
+-   arg 需要传递的事件参数
 
 **返回值**
 
 boolean
-
-
-
-
 
 ### off
 
 移除一个事件中的回调
 
-
-
 **语法**
 
 ```
 eventBus.off(eventName, callback)
 ```
 
-- eventName 需要移除的事件的名称
-- callback 需要移除的事件的回调函数
-
-
+-   eventName 需要移除的事件的名称或唯一标识
+-   callback 需要移除的事件的回调函数
 
 **返回值**
 
 boolean
-
-
-
-
 
 ### has
 
 判断指定事件中的回调函数是否存在
 
-
-
 **语法**
 
 ```
-eventBus.off(eventName, callback)
+eventBus.has(eventName, callback)
 ```
 
-- eventName 需要判断是否存在的事件的名称
-- callback 需要判断是否存在的事件的回调函数
-
-
+-   eventName 需要判断是否存在的事件的名称
+-   callback 需要判断是否存在的事件的回调函数
 
 **返回值**
 
 boolean
 
+### hasSign
 
+判断唯一标识是否存在
 
+**语法**
 
+```
+eventBus.hasSign(sign)
+```
+
+-   sign 需要判断是否存在的唯一标识
+
+**返回值**
+
+boolean
 
 ### hasEvent
 
 判断事件是否存在
-
-
 
 **语法**
 
@@ -301,17 +270,11 @@ boolean
 eventBus.hasEvent(eventName)
 ```
 
-- eventName 需要判断是否存在的事件名称
-
-
+-   eventName 需要判断是否存在的事件名称
 
 **返回值**
 
 boolean
-
-
-
-
 
 ## 上下文对象
 
@@ -319,42 +282,40 @@ boolean
 
 ```js
 const eventBus = new EventBus({
-    ctx(ctx) {
-        // 上下文对象中的函数 this 已被绑定, 支持解构
-        console.log(ctx)
-    }
+	ctx(ctx) {
+		// 上下文对象中的函数 this 已被绑定, 支持解构
+		console.log(ctx)
+	}
 })
 ```
 
-- ctx 上下文对象
+-   ctx 上下文对象
 
-  - eventBus 实例对象
+    -   eventBus 实例对象
 
-  - state 实例的状态数据
+    -   state 实例的状态数据
 
-  - events 实例的事件数据 [仅在当前上下文对象中可以获取]
+    -   events 实例的事件数据 [仅在当前上下文对象中可以获取]
 
-  - on 实例的 on 方法
+    -   on 实例的 on 方法
 
-  - once 实例的 once 方法
+    -   once 实例的 once 方法
 
-  - has 实例的 has 方法
+    -   has 实例的 has 方法
 
-  - hasEvent 实例的 hasEvent 方法
+    -   hasSign 实例的 hasSign 方法
 
-  - emit 实例的 emit 方法
+    -   hasEvent 实例的 hasEvent 方法
 
-  - off 实例的 off 方法
+    -   emit 实例的 emit 方法
 
-  - removeEvent 移除某个事件方法 [仅在当前上下文对象中可以获取]
+    -   off 实例的 off 方法
 
-    - 语法 `ctx.removeEvent(eventName)`
+    -   removeEvent 移除某个事件方法 [仅在当前上下文对象中可以获取]
 
-      - eventName 需要删除的事件的名称
-      - 删除事件其下所有回调函数都将被移除
+        -   语法 `ctx.removeEvent(eventName)`
 
-    - 返回值 boolean
+            -   eventName 需要删除的事件的名称
+            -   删除事件其下所有回调函数都将被移除
 
-  
-
-
+        -   返回值 boolean

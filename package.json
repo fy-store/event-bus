@@ -1,10 +1,10 @@
 {
 	"name": "@yishu/event-bus",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"type": "module",
-	"main": "./dist/main.js",
-	"types": "./dist/main.d.ts",
-	"description": "一个事件总线库",
+	"main": "./dist/main.es.js",
+	"types": "./dist/main.es.d.ts",
+	"description": "一个发布订阅模块",
 	"keywords": [
 		"yishu",
 		"@yishu",
@@ -13,19 +13,23 @@
 		"event",
 		"bus"
 	],
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/rgbjs/event-bus"
+		"url": "git+https://github.com/rgbjs/event-bus"
 	},
 	"homepage": "https://github.com/rgbjs/event-bus",
 	"author": "feiYu <feiyucode@gmail.com>",
 	"license": "MIT",
 	"scripts": {
-		"dev": "cross-env VITE_APP_PATH=/src/main.ts vite",
-		"test:dev": "cross-env VITE_APP_PATH=/test/dev/index.ts vite",
-		"test:pro": "cross-env VITE_APP_PATH=/test/pro/index.js vite",
-		"build": "vite build",
-		"preview": "vite preview",
+		"dev": "cross-env VITE_APP_PATH=./src/main.ts vite",
+		"test:dev": "cross-env VITE_APP_PATH=./test/dev/index.ts vite",
+		"test:pro": "cross-env VITE_APP_PATH=./test/pro/index.js vite",
+		"build": "cross-env VITE_APP_PATH=./src/main.ts vite build",
+		"preview": "cross-env VITE_APP_PATH=./src/main.ts vite preview",
 		"test": "vitest"
 	},
 	"devDependencies": {

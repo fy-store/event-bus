@@ -14,6 +14,7 @@ export interface TCtx<S> {
 	on: EventBus<S>['on']
 	once: EventBus<S>['once']
 	has: EventBus<S>['has']
+	hasSign: EventBus<S>['hasSign']
 	hasEvent: EventBus<S>['hasEvent']
 	emit: EventBus<S>['emit']
 	off: EventBus<S>['off']
@@ -28,7 +29,7 @@ export interface TOptions<S> {
 	ctx?: (ctx: TCtx<S>) => void
 }
 
-export type TCallback<S> = (state: S, ...args: any[]) => any
+export type TCallback<S> = (this: EventBus<S>, state: S, ...args: any[]) => any
 
 // 实例后
 export interface TEvent<T> {

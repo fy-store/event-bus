@@ -9,8 +9,10 @@ export default defineConfig({
 		lib: {
 			entry: process.env.VITE_APP_PATH as string,
 			name: 'EventBus',
-			formats: ['es'],
-			fileName: 'main'
+			formats: ['es', 'cjs'],
+			fileName(format, entryName) {
+				return `${entryName}.${format}.js`
+			}
 		}
 	},
 

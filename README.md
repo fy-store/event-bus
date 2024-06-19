@@ -68,8 +68,8 @@ eventBus.off(f2) // 通过返回值移除
 如果你想使用 CommonJS 模块化规范, 那么你可以使用以下方式导入
 
 ```js
-const { isType } = require('@yishu/event-bus/dist/main.cjs.js')
-console.log(isType(10)) // 'number'
+const EventBus = require('@yishu/event-bus/dist/main.cjs.js')
+const eventBus = new EventBus()
 ```
 
 ## EventBus

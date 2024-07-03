@@ -1,6 +1,6 @@
 {
 	"name": "@yishu/event-bus",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"type": "module",
 	"main": "./dist/main.es.js",
 	"types": "./dist/main.es.d.ts",

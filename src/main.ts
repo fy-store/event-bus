@@ -238,7 +238,11 @@ export default class EventBus<S> {
 			for (const [name, eventArr] of entriesEvent) {
 				const i = eventArr.findIndex((item) => item.sign === eventName)
 				if (i !== -1) {
-					eventArr[i].callback.call(this, this.#state, ...args)
+					try {
+						eventArr[i].callback.call(this, this.#state, ...args)
+					} catch (error) {
+						console.error(error)
+					}
 					if (eventArr[i].once) {
 						eventArr.splice(i, 1)
 						if (eventArr.length === 0) {
@@ -256,7 +260,11 @@ export default class EventBus<S> {
 		const eventArr = this.#events.get(eventName) as TEvent<S>[]
 		for (let i = 0; i < eventArr.length; i++) {
 			const item = eventArr[i]
-			item.callback.call(this, this.#state, ...args)
+			try {
+				item.callback.call(this, this.#state, ...args)
+			} catch (error) {
+				console.error(error)
+			}
 			if (item.once) {
 				eventArr.splice(i, i + 1)
 				i--

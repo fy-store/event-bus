@@ -124,7 +124,7 @@ const eventBus = new EventBus({
 
 ### state
 
-事件状态数据
+实例状态数据
 
 ```
 eventBus.state
@@ -273,7 +273,6 @@ boolean
 ```js
 const eventBus = new EventBus({
 	ctx(ctx) {
-		// 上下文对象中的函数 this 已被绑定, 支持解构
 		console.log(ctx)
 	}
 })

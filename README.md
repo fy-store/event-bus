@@ -61,7 +61,7 @@ eventBus.off(f2) // 通过标识符移除
 如果你想使用 CommonJS 模块化规范, 那么你可以使用以下方式导入
 
 ```js
-const EventBus = require('@yishu/event-bus/dist/main.cjs.js')
+const EventBus = require('@yishu/event-bus/dist/index.cjs.js')
 const eventBus = new EventBus()
 ```
 

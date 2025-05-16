@@ -1,9 +1,21 @@
 {
 	"name": "@yishu/event-bus",
-	"version": "2.0.3",
+	"version": "3.0.0",
 	"type": "module",
-	"main": "./dist/main.es.js",
-	"types": "./dist/main.es.d.ts",
+	"main": "./dist/index.es.js",
+	"types": "./dist/index.es.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.es.js",
+			"require": "./dist/index.cjs.js"
+		}
+	},
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"*.d.ts",
+		"README.md"
+	],
 	"description": "一个发布订阅模块",
 	"keywords": [
 		"yishu",
@@ -13,10 +25,6 @@
 		"event",
 		"bus"
 	],
-	"files": [
-		"dist",
-		"README.md"
-	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/rgbjs/event-bus"
@@ -25,22 +33,19 @@
 	"author": "feiYu <feiyucode@gmail.com>",
 	"license": "MIT",
 	"scripts": {
-		"dev": "cross-env VITE_APP_PATH=./src/main.ts vite",
-		"test:dev": "cross-env VITE_APP_PATH=./test/dev/index.ts vite",
-		"test:pro": "cross-env VITE_APP_PATH=./test/pro/index.js vite",
-		"build": "cross-env VITE_APP_PATH=./src/main.ts vite build",
-		"preview": "cross-env VITE_APP_PATH=./src/main.ts vite preview",
-		"test": "vitest"
+		"dev": "cross-env VITE_APP_PATH=./src/index.ts vite",
+		"test": "vitest",
+		"tests:dev": "cross-env VITE_APP_PATH=./test/dev/index.ts vite",
+		"tests:pro": "cross-env VITE_APP_PATH=./test/pro/index.js vite",
+		"build": "cross-env VITE_APP_PATH=./src/index.ts vite build",
+		"preview": "cross-env VITE_APP_PATH=./src/index.ts vite preview"
 	},
 	"devDependencies": {
 		"@types/node": "^20.14.2",
 		"cross-env": "^7.0.3",
-		"typescript": "^5.3.3",
-		"vite": "^5.1.0",
-		"vite-plugin-dts": "^3.9.1",
-		"vitest": "^1.6.0"
-	},
-	"dependencies": {
-		"assist-tools": "^2.2.4"
+		"typescript": "^5.8.3",
+		"vite": "^6.3.5",
+		"vite-plugin-dts": "^4.5.4",
+		"vitest": "^3.1.3"
 	}
 }

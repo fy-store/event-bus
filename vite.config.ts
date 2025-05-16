@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite'
 import fs from 'fs'
 import path from 'path'
+// @ts-ignore
 import dts from 'vite-plugin-dts'
 
 export default defineConfig({
@@ -11,21 +12,21 @@ export default defineConfig({
 			entry: process.env.VITE_APP_PATH as string,
 			name: 'EventBus',
 			formats: ['es', 'cjs'],
-			fileName(format, entryName) {
-				return `${entryName}.${format}.js`
+			fileName(format, _entryName) {
+				return `index.${format}.js`
 			}
 		}
 	},
 
 	plugins: [
 		dts({
+			rollupTypes: true,
 			afterBuild(emittedFiles) {
 				const rootPath = path.resolve()
 				const reg = /\\/g
-				const p = path.join(rootPath, '/dist/main.d.ts').replace(reg, '/')
+				const p = path.join(rootPath, '/dist/index.es.d.ts').replace(reg, '/')
 				const content = emittedFiles.get(p) as string
-				fs.writeFileSync(path.join(rootPath, '/dist/main.es.d.ts'), content)
-				fs.writeFileSync(path.join(rootPath, '/dist/main.cjs.d.ts'), content)
+				fs.writeFileSync(path.join(rootPath, '/dist/index.cjs.d.ts'), content)
 			}
 		})
 	]

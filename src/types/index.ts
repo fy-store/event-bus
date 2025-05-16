@@ -1,44 +1,97 @@
-import EventBus from '../main.js'
+import type EventBus from '../index.js'
 
-export interface TEventsItem<S> {
-	once?: boolean
-	callback: (state: S, ...args: any[]) => any
-}
-
-export type TEvents<S> = {
-	[k: string | symbol]: TEventsItem<S> | TEvents<S>[] | TCallback<S> | TCallback<S>[]
-}
-
-export interface TCtx<S> {
-	eventBus: EventBus<S>
-	on: EventBus<S>['on']
-	once: EventBus<S>['once']
-	has: EventBus<S>['has']
-	hasSign: EventBus<S>['hasSign']
-	hasEvent: EventBus<S>['hasEvent']
-	emit: EventBus<S>['emit']
-	off: EventBus<S>['off']
-	removeEvent: (eventName: string | symbol) => boolean
-	state: EventBus<S>['state']
-	events: EventBus<S>['__events__']
-}
-
-export interface TOptions<S> {
+/** 配置选项 */
+export interface Options<S extends State, E extends EventMapOption<S, EventBus<S, E>>> {
+	/** 状态对象 */
 	state?: S
-	events?: TEvents<S>
-	ctx?: (ctx: TCtx<S>) => void
+	/** 事件配置对象, key 为事件名, 支持 symbol */
+	eventMap?: E
+	/** 实例上下文, 通过该钩子可以最大限度操作 EventBus 的实例 */
+	ctx?: (this: EventBus<S, E>, ctx: EventBusCtx<S, E, EventMap<S, EventBus<S, E>>>) => void
 }
 
-export type TCallback<S> = (this: EventBus<S>, state: S, ...args: any[]) => any
+export interface EventBusCtx<
+	S extends State,
+	E extends EventMapOption<S, EventBus<S, E>>,
+	EM extends EventMap<S, EventBus<S, E>>
+> {
+	/** 状态对象 */
+	state: S
+	/** 解析后的事件对象 */
+	eventMap: EM
+	/** 实例引用 */
+	self: EventBus<S, E>
+	/** 设置实例属性 */
+	setSelf(key: string | symbol, value: any): any
+	/**
+	 * 清除一个事件
+	 * @param eventName 事件名称
+	 */
+	clear(eventName: keyof E): void
+	/**
+	 * 清除一个事件
+	 * @param eventName 事件名称
+	 */
+	clear(eventName: string | symbol): void
+	/**
+	 * 清除所有事件
+	 */
+	clearAll(): void
+}
 
-// 实例后
-export interface TEvent<T> {
+export type State = Record<string | symbol, any>
+
+/** 上下文 */
+export interface Ctx<S, Self> {
+	/** 状态 */
+	state: S
+	/** 实例 */
+	self: Self
+}
+
+/** 事件回调函数 */
+export interface Callback<S, Self> {
+	(this: Self, ctx: Ctx<S, Self>, ...args: any[]): void
+}
+
+/** 事件回调函数配置选项 */
+export interface CallbackOptions<S, Self> {
+	/** 是否只执行一次 */
+	once?: boolean
+	/** 自定义标识 */
+	sign?: symbol
+	/** 事件回调 */
+	fn: Callback<S, Self>
+}
+
+/** 事件配置对象, key 为事件名, 支持 symbol */
+export interface EventMapOption<S extends State, Self> {
+	[k: string | symbol]: Callback<S, Self> | Callback<S, Self>[] | CallbackOptions<S, Self>[]
+}
+
+/** 注册事件配置选项 */
+export interface OnOptions {
+	/** 自定义标识 */
+	sign?: symbol
+}
+
+export interface CallbackInfo<S, Self> {
 	once: boolean
 	sign: symbol
-	callback: (state: T, ...args: any[]) => any
+	fn: Callback<S, Self>
 }
 
-export type TGetEentNames<T> = T extends { events: { name: infer N }[] } ? N : never
+export interface EventMap<S, Self> {
+	[k: string | symbol]: CallbackInfo<S, Self>[]
+}
 
-// 提取Map键的联合类型
-export type GetMapKeys<T> = T extends Map<infer K, any> ? K : never
+// 工具类型
+type _DinfindEventMap<S extends State, Self, Keys extends string | symbol> = Partial<
+	Record<Keys, Callback<S, Self> | Callback<S, Self>[] | CallbackOptions<S, Self>[]>
+>
+
+/** 自定义 eventMap */
+export type DefindEventMap<S extends State, Keys extends string | symbol> = _DinfindEventMap<S, EventBus<S, any>, Keys>
+
+// 工具类型
+export type Self<S extends State, E extends EventMapOption<S, EventBus<S, E>>> = EventBus<S, E>

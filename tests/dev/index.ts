@@ -8,14 +8,20 @@ interface State {
 
 type Keys = 'setA' | 'setB'
 
-class Test extends EventBus<State, DefindEventMap<State, Keys>> {
-	constructor() {
-		super()
-	}
-}
+const test = new EventBus<State, DefindEventMap<State, Keys>>()
 
-const test = new Test()
-test.on('setA', (ctx) => {
-	console.log(ctx)
+test.on('setA', async (ctx) => {
+	await new Promise((resolve) => {
+		setTimeout(() => {
+			resolve(1)
+		}, 2000)
+	})
+	return 1
 })
-test.emit('setA')
+test.on('setA', (ctx) => {
+	throw new Error('error')
+})
+
+const result = await test.emitAwait('setA')
+
+console.log(result)

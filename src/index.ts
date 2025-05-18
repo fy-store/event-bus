@@ -231,6 +231,62 @@ class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E>>> {
 	}
 
 	/**
+	 * 触发指定事件
+	 * @param eventName 事件名称
+	 * @param args 参数列表
+	 */
+	emitAwait(this: EventBus<S, E>, eventName: keyof E, ...args: any[]): Promise<PromiseSettledResult<any>[]>
+	/**
+	 * 触发指定事件
+	 * @param eventName 事件名称
+	 * @param args 参数列表
+	 */
+	emitAwait(
+		this: EventBus<S, E>,
+		eventName: string | symbol,
+		...args: any[]
+	): Promise<PromiseSettledResult<any>[]>
+	emitAwait(this: EventBus<S, E>, eventName: string | symbol, ...args: any[]) {
+		const callbackInfoArr = this.#eventMap[eventName]
+		if (!callbackInfoArr) {
+			logWarn(`EventBus(warn): eventName -> '${String(eventName)}' is not exist`)
+			return Promise.allSettled([])
+		}
+
+		const task: Promise<any>[] = []
+		for (let i = 0; i < callbackInfoArr.length; i++) {
+			const { fn, once } = callbackInfoArr[i]
+			task.push(
+				new Promise(async (resolve, reject) => {
+					try {
+						const result = await fn.call(
+							this,
+							{
+								self: this,
+								state: this.state
+							},
+							...args
+						)
+						resolve(result)
+					} catch (error) {
+						reject(error)
+					}
+				})
+			)
+
+			if (once) {
+				callbackInfoArr.splice(i, 1)
+				i--
+			}
+		}
+
+		if (!callbackInfoArr.length) {
+			delete this.#eventMap[eventName]
+		}
+		return Promise.allSettled(task)
+	}
+
+	/**
 	 * 移除指定事件中的回调
 	 * @param eventName 事件名称
 	 * @param ref 回调函数引用或回调标识

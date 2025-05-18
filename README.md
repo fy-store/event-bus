@@ -184,6 +184,29 @@ eventBus.emit(eventName [,arg1, arg2, arg3, ...argN])
 
 this
 
+### emitAwait
+
+触发指定事件, 并返回一个 promise, 事件所有回调完成, promise resolve
+
+-   与 `emit` 区别
+
+-   `emit` 触发事件, 不等待回调完成
+
+-   `emitAwait` 触发事件, 等待所有回调完成, promise resolve
+
+**语法**
+
+```
+await eventBus.emitAwait(eventName [,arg1, arg2, arg3, ...argN])
+```
+
+-   eventName 需要触发的事件的名称
+-   arg 需要传递的事件参数
+
+**返回值**
+
+Promise.allSettled() 返回值
+
 ### off
 
 移除一个事件中的回调

@@ -111,7 +111,7 @@ const eventBus = new EventBus({
 	/** 实例上下文 hook */
 	ctx(ctx) {
 		// ctx.clear('a') // 清除指定事件
-		// ctx.clearAll() // 清除指定事件
+		// ctx.clearAll() // 清除所有事件
 		// ctx.state // 状态对象
 		// ctx.eventMap // 解析后的事件对象
 		// ctx.self // 当前实例
@@ -304,7 +304,7 @@ const eventBus = new EventBus({
 -   ctx 上下文对象
 
     -   ctx.clear(eventName) // 清除指定事件
-    -   ctx.clearAll() // 清除指定事件
+    -   ctx.clearAll() // 清除所有事件
     -   ctx.state // 状态对象
     -   ctx.eventMap // 解析后的事件对象
     -   ctx.self // 当前实例
